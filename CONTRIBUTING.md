@@ -4,7 +4,9 @@ Thanks for your interest in `@pinetwork/pi-sdk-js`.
 
 ## Getting set up
 
-Node 18 or newer, and yarn.
+Node 20.19 or newer, and yarn. That is higher than the `engines` floor in `package.json`:
+`engines` is the promise to consumers, who install only `dist/` and `async-mutex` and are fine
+on Node 18, while `jsdom` in the test toolchain needs 20.19. CI covers 20 and 22.
 
 ```sh
 yarn install
