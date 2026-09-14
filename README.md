@@ -9,10 +9,9 @@ It is part of the "Ten Minutes to Transactions" effort described in this
 [video](https://www.youtube.com/watch?v=cIFqf1Z5pRM&t=35s).
 
 **This package only contains the front end interface for initiating and
-completing Pi transations. It does not include back end support and
-will not operate without it.** Use one of the back end packages such as
-[pi-sdk-nextjs](https://github.com/pi-apps/pi-sdk-nextjs) or
-[pi-sdk-rails](https://github.com/pi-apps/pi-sdk-rails).
+completing Pi transactions. It does not include back end support and
+will not operate without it.** Pair it with one of the Pi back end SDKs; the
+[Official Pi SDK Docs](https://docs.minepi.com/) cover which are available.
 
 ---
 
@@ -20,9 +19,9 @@ will not operate without it.** Use one of the back end packages such as
 
 1. **Install with yarn or npm**
    ```sh
-   yarn add pi-sdk-js
+   yarn add @pinetwork/pi-sdk-js
    # or
-   npm install pi-sdk-js
+   npm install @pinetwork/pi-sdk-js
    ```
 2. **Ensure the global Pi SDK (`window.Pi`) is available in your HTML**
    ```html
@@ -31,16 +30,26 @@ will not operate without it.** Use one of the back end packages such as
 3. **Import and use the SDK in your project:**
 
    ```ts
-   import { PiSdkBase, PiUser, PaymentData } from 'pi-sdk-js';
+   import { PiSdkBase, type PaymentData } from '@pinetwork/pi-sdk-js';
 
-   const pi = new PiSdkBase();
-   await pi.connect();
-   // Now PiSdkBase.user is available (or listen for onConnection)
-   pi.createPayment({ amount: 1, memo: "Demo", metadata: { productId: 42 } });
+   const payment: PaymentData = {
+     amount: 1,
+     memo: 'Demo',
+     metadata: { productId: 42 },
+   };
+   const pi = new PiSdkBase({
+     paymentBasePath: '/api/pi_payment',
+     // Add 'wallet_address' if your app pays users (A2U).
+     scopes: ['payments', 'username'],
+   });
+   const { user } = await pi.authenticate();
+
+   console.log(user);
+   pi.createPayment(payment);
    ```
 
-3. **Provide back end transaction support in your app:**
-   as described in the [Official Pi SDK Docs](https://developer.minepi.com/).
+4. **Provide back end transaction support in your app:**
+   as described in the [Official Pi SDK Docs](https://docs.minepi.com/).
 
 ---
 
@@ -50,15 +59,18 @@ will not operate without it.** Use one of the back end packages such as
 
 #### **`PiSdkBase` (Class)**
 Core interface to Pi Network via the browser SDK. Example usage:
-- **`connect()`** – Initiates authentication and session handshake. Should be called on user intent (or mount).
+- **`authenticate()`** – Initiates authentication and session handshake. Should be called on user intent (or mount).
 - **`createPayment(paymentData)`** – Begins a payment operation. All server callbacks are handled automatically via Pi's callback protocol.
+- **Constructor options**:
+  - `paymentBasePath: string` – Sets the application route prefix used by payment callbacks.
+  - `scopes: string[]` – Scopes to request from Pi. Defaults to `['payments', 'username']`.
 - **Static helpers**:
-  - `PiSdkBase.user: PiUser | null` – Current user after `.connect()`
+  - `PiSdkBase.user: PiUser | null` – Current user after `.authenticate()`
   - `PiSdkBase.connected: boolean` – Is SDK authenticated/connected?
   - `PiSdkBase.accessToken: string | null` – Latest session or payment JWT
 
 #### **`PiUser` (Type)**
-Represents an authenticated Pi user, at minimum `{ name: string, ... }`.
+Represents an authenticated Pi user as `{ user_uid: string, username: string }`.
 
 #### **`PaymentData` (Type)**
 ```ts
@@ -71,10 +83,25 @@ interface PaymentData {
 ---
 
 ## 🔑 Key Details
-- **ESM Only**: Use `import { ... } from 'pi-sdk-js'`; no CommonJS support.
+- **ESM Only**: Use `import { ... } from '@pinetwork/pi-sdk-js'`; no CommonJS support.
 - **Depends on the global `window.Pi`**: The SDK does NOT bundle or polyfill the Pi Network global; you must include the Pi SDK `<script>` yourself.
-- **Callbacks & Events**: Payment lifecycle events (approve, complete, cancel, error, incomplete) are managed via static methods—override or listen as needed.
+- **Callbacks & Events**: Payment lifecycle events (`approve`, `complete`, `cancel`, `error`, and `incomplete`) are forwarded to the configured payment base path.
+- **Scopes**: `authenticate()` requests `['payments', 'username']` unless you configure `scopes`. Paying a user (A2U) additionally requires `wallet_address` — without it the platform rejects the payout with `missing_scope`. Widening `scopes` after a session exists re-prompts the user rather than reusing the narrower token.
+- **Incomplete payments**: Authentication automatically forwards incomplete payments to the backend `incomplete` route for recovery. A failing incomplete recovery rejects authentication with `PiSdkError`.
+- **Errors**: Initialization, authentication, validation, and backend failures throw `PiSdkError` with a stable `code` and optional `cause`. Lifecycle callback failures also throw instead of being swallowed.
 - **No React dependency.**
+
+```ts
+import { PiSdkBase, PiSdkError } from '@pinetwork/pi-sdk-js';
+
+try {
+  await new PiSdkBase().authenticate();
+} catch (error) {
+  if (error instanceof PiSdkError) {
+    console.error(error.code, error.cause);
+  }
+}
+```
 
 ---
 
@@ -92,8 +119,8 @@ See the complete API in source. Most advanced features are mapped, but basics ar
 ---
 
 ## 📚 Further Resources
-- [Official Pi SDK Docs](https://developer.minepi.com/)
-- [Pi SDK JavaScript API Reference](https://developer.minepi.com/sdk/reference)
+- [Official Pi SDK Docs](https://docs.minepi.com/)
+- [Pi SDK JavaScript API Reference](https://docs.minepi.com/api-reference/SdkReference)
 
 For advanced integration patterns, see the
 [pi-sdk-react](https://github.com/pi-apps/pi-sdk-react) package or
