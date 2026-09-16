@@ -1,4 +1,5 @@
 /node_modules/
+examples/*/node_modules/
 
 # Emacs temporary files
 *~
@@ -26,23 +27,6 @@ yarn-error.log*
 # swap files
 *.swp
 *.swo
-# Emacs temporary files
-*~
-\#*
-*.elc
 
-# macOS
-.DS_Store
-
-# Windows
-Thumbs.db
-
-# Editor folders/files
-**/.vscode
-.idea
-
-# Vim temporary
-*-E
-
-# Rails apps for integration testing are not needed in the repo
-rails/*_app
+# build output
+dist/

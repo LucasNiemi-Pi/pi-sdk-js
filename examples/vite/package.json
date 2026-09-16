@@ -1,0 +1,17 @@
+{
+  "name": "pi-sdk-js-vite-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@pinetwork/pi-sdk-js": "file:../.."
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^7.3.0"
+  }
+}

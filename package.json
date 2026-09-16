@@ -1,6 +1,6 @@
 {
   "name": "@pinetwork/pi-sdk-js",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A JavaScript class for handling front-end protocol for Pi transactions.",
   "keywords": [
     "pi",
@@ -18,12 +18,15 @@
   },
   "license": "LicenseRef-PiOS",
   "type": "module",
-  "files": [
-    "dist"
-  ],
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
@@ -31,7 +34,8 @@
     "build": "vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "prepublishOnly": "yarn build && yarn test --run"
   },
   "devDependencies": {
     "@types/node": "^25.0.1",
@@ -43,5 +47,8 @@
   },
   "dependencies": {
     "async-mutex": "^0.4.0"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
